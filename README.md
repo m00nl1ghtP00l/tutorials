@@ -1,6 +1,6 @@
 # Support Ticket Classifier Evaluation
 
-This evaluation workflow tests an LLM-based support ticket classification system. It fetches the support tickets in the Google Sheet "Customer support ticket eval 1", classifies them using a language model, and compares the predictions against expected ground truth values to calculate accuracy metrics.
+This evaluation workflow tests an LLM-based support ticket classification system. It fetches the support tickets in the Google Sheet "Customer support ticket eval sheet", classifies them using a language model, and compares the predictions against expected ground truth values to calculate accuracy metrics.
 
 ## Overview
 
@@ -102,7 +102,7 @@ These metrics are stored as custom metrics in the n8n evaluation system and can 
 
 ### Ground Truth Storage
 - **Platform**: Google Sheets
-- **Document**: "Customer support ticket eval 1"
+- **Document**: "Customer support ticket eval sheet"
 - **Sheet**: "Sheet2"
 - **Columns**: Contains expected values (`expected_type`, `expected_queue`, `expected_priority`, `expected_language`, `expected_tag1-3`, `expected_answer`) and predicted values (`predicted_type`, `predicted_queue`, `predicted_priority`, `predicted_language`, `predicted_tag1-3`, `predicted_response`, `reasoning`)
 
