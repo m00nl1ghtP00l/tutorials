@@ -1,0 +1,398 @@
+{
+  "name": "Support ticket classifier - eval",
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ollama.com/api/chat",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer f82b4134212a44be863112eea97f3d3f.qx2HNsGzzEuTBP8WVMl6g1oV"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"nemotron-3-nano:30b-cloud\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"You are a support ticket classifier and responder. Analyse this ticket, classify it, and write a helpful response.\\n\\n## Ticket\\n**Subject:** {{ $json.subject }}\\n**Body:** {{ $json.body }}\\n\\n## Tasks\\n1. **Priority**: Choose one: low, medium, high, critical\\n2. **Queue**: Choose the best team:\\n   - Technical Support\\n   - Billing and Payments\\n   - Customer Service\\n   - IT Support\\n   - Product Support\\n   - Sales and Pre-Sales\\n   - Returns and Exchanges\\n   - Service Outages and Maintenance\\n   - Human Resources\\n   - General Inquiry\\n3. **Type**: Choose one: Incident, Request, Problem, Change\\n4. **Tags**: List 1-3 relevant tags (e.g., Network, Security, Billing, Hardware)\\n5. **Language**: Detect the language using ISO 639-1 code (e.g., en, de, fr, es, ja)\\n6. **Response**: Write a professional, helpful response to the customer\\n7. **Reasoning**: One sentence explaining your classification\\n\\n## Response Format\\nRespond ONLY with valid JSON:\\n{\\n  \\\"priority\\\": \\\"...\\\",\\n  \\\"queue\\\": \\\"...\\\",\\n  \\\"type\\\": \\\"...\\\",\\n  \\\"tags\\\": [\\\"...\\\", \\\"...\\\"],\\n  \\\"language\\\": \\\"...\\\",\\n  \\\"response\\\": \\\"Your helpful response to the customer...\\\",\\n  \\\"reasoning\\\": \\\"One sentence explaining your classification\\\"\\n}\"\n    }\n  ],\n  \"stream\": false\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        656,
+        96
+      ],
+      "id": "f9244276-f402-401e-864e-78371504bfbf",
+      "name": "LLM Classify Ticket"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -304,
+        -48
+      ],
+      "id": "dcd6f11c-116d-42fa-b8db-711f33c15add",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "url": "https://datasets-server.huggingface.co/rows",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "dataset",
+              "value": "Tobi-Bueck/customer-support-tickets"
+            },
+            {
+              "name": "config",
+              "value": "default"
+            },
+            {
+              "name": "split",
+              "value": "train"
+            },
+            {
+              "name": "offset",
+              "value": "={{ Math.floor(Math.random() * 1000) }}"
+            },
+            {
+              "name": "length",
+              "value": "1"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        176,
+        96
+      ],
+      "id": "2792b4e6-d190-43db-9246-732004de0d9a",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "const row = $input.first().json.rows[0].row;\n\nreturn [{\n  subject: row.subject,\n  body: row.body\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        96
+      ],
+      "id": "0b18159f-7104-44e5-a135-641a4fdde5d7",
+      "name": "Extract Ticket"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -64,
+        96
+      ],
+      "id": "02c7ecd5-5fad-4d6f-9aed-bd0b874fac76",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\nconst llmResponse = input.message.content;\n\nconst prediction = JSON.parse(llmResponse);\n\nreturn [{\n  predicted_priority: prediction.priority,\n  predicted_queue: prediction.queue,\n  predicted_type: prediction.type,\n  predicted_language: prediction.language,\n  predicted_response: prediction.response,\n  predicted_tag1: prediction.tags[0] || '',\n  predicted_tag2: prediction.tags[1] || '',\n  predicted_tag3: prediction.tags[2] || '',\n  reasoning: prediction.reasoning\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        864,
+        96
+      ],
+      "id": "0162d61a-b373-466a-8baf-a0eb342a3d47",
+      "name": "Parse Response"
+    },
+    {
+      "parameters": {
+        "source": "googleSheets",
+        "documentId": {
+          "__rl": true,
+          "value": "1XtleyTlPTloB3MIZa1kROaHuiR9p9Vpp8wVU0Xu5hok",
+          "mode": "list",
+          "cachedResultName": "N8N eval test 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1XtleyTlPTloB3MIZa1kROaHuiR9p9Vpp8wVU0Xu5hok/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1654456334,
+          "mode": "list",
+          "cachedResultName": "Sheet2",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1XtleyTlPTloB3MIZa1kROaHuiR9p9Vpp8wVU0Xu5hok/edit#gid=1654456334"
+        },
+        "outputs": {
+          "values": [
+            {
+              "outputName": "predicted_type",
+              "outputValue": "={{ $json.predicted_type}}"
+            },
+            {
+              "outputName": "predicted_queue",
+              "outputValue": "={{ $json.predicted_queue }}"
+            },
+            {
+              "outputName": "predicted_priority",
+              "outputValue": "={{ $json.predicted_priority }}"
+            },
+            {
+              "outputName": "predicted_language",
+              "outputValue": "={{ $json.predicted_language }}"
+            },
+            {
+              "outputName": "predicted_tag1",
+              "outputValue": "={{ $json.predicted_tag1}}"
+            },
+            {
+              "outputName": "predicted_tag2",
+              "outputValue": "={{ $json.predicted_tag2}}"
+            },
+            {
+              "outputName": "predicted_tag3",
+              "outputValue": "={{ $json.predicted_tag3}}"
+            },
+            {
+              "outputName": "reasoning",
+              "outputValue": "={{ $json.reasoning}}"
+            },
+            {
+              "outputName": "=predicted_response",
+              "outputValue": "={{ $json.predicted_response}}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.evaluation",
+      "typeVersion": 4.8,
+      "position": [
+        1056,
+        96
+      ],
+      "id": "5b778469-3fa6-4418-81ce-76e789d1a619",
+      "name": "Set Ouputs",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "gyQuBmboQxM1VzfC",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "setMetrics",
+        "metric": "customMetrics",
+        "metrics": {
+          "assignments": [
+            {
+              "id": "cf3b8567-c3f6-4b86-8b66-07623d541421",
+              "name": "type_match",
+              "value": "={{ $json.predicted_type === $('Evaluation Trigger').first().json.expected_type ? 1 : 0 }}",
+              "type": "number"
+            },
+            {
+              "id": "9ceb463f-967a-4776-947c-b1edb9a0da9c",
+              "name": "queue_match",
+              "value": "={{ $json.predicted_queue === $('Evaluation Trigger').first().json.expected_queue ? 1 : 0 }}",
+              "type": "number"
+            },
+            {
+              "name": "priority_match",
+              "value": "={{ $json.predicted_priority === $('Evaluation Trigger').first().json.expected_priority ? 1 : 0 }}",
+              "type": "number",
+              "id": "e0c785c6-2b92-4d73-8898-87fa469f556f"
+            },
+            {
+              "id": "67621c6c-3e28-4f5e-bcc8-081718909478",
+              "name": "language_match",
+              "value": "={{ $json.predicted_language === $('Evaluation Trigger').first().json.expected_language ? 1 : 0 }}",
+              "type": "number"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.evaluation",
+      "typeVersion": 4.8,
+      "position": [
+        1520,
+        -16
+      ],
+      "id": "8a45c625-97b9-4376-999b-a5687691025a",
+      "name": "Evaluation"
+    },
+    {
+      "parameters": {
+        "source": "googleSheets",
+        "documentId": {
+          "__rl": true,
+          "value": "1XtleyTlPTloB3MIZa1kROaHuiR9p9Vpp8wVU0Xu5hok",
+          "mode": "list",
+          "cachedResultName": "N8N eval test 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1XtleyTlPTloB3MIZa1kROaHuiR9p9Vpp8wVU0Xu5hok/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1654456334,
+          "mode": "list",
+          "cachedResultName": "Sheet2",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1XtleyTlPTloB3MIZa1kROaHuiR9p9Vpp8wVU0Xu5hok/edit#gid=1654456334"
+        }
+      },
+      "type": "n8n-nodes-base.evaluationTrigger",
+      "typeVersion": 4.7,
+      "position": [
+        -304,
+        240
+      ],
+      "id": "33756e03-73a1-4f48-b75f-5669fa4da3c5",
+      "name": "Evaluation Trigger",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "gyQuBmboQxM1VzfC",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "checkIfEvaluating"
+      },
+      "type": "n8n-nodes-base.evaluation",
+      "typeVersion": 4.8,
+      "position": [
+        1248,
+        96
+      ],
+      "id": "6e5c04af-2e3c-4bf5-b8bb-7d790e78b78a",
+      "name": "Evaluation1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "LLM Classify Ticket": {
+      "main": [
+        [
+          {
+            "node": "Parse Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Extract Ticket",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Ticket": {
+      "main": [
+        [
+          {
+            "node": "LLM Classify Ticket",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "No Operation, do nothing": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Response": {
+      "main": [
+        [
+          {
+            "node": "Set Ouputs",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Evaluation1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Ouputs": {
+      "main": [
+        []
+      ]
+    },
+    "Evaluation Trigger": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evaluation": {
+      "main": [
+        []
+      ]
+    },
+    "Evaluation1": {
+      "main": [
+        [
+          {
+            "node": "Evaluation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "12e57b69-59c9-43be-b610-e36a4ceefc7a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f4ae60e137b3d823ce0999a3c6a35ca74be8621bbd2552f24382268a6e1bfd5a"
+  },
+  "id": "fFAskhmQoXFiATwL",
+  "tags": []
+}
