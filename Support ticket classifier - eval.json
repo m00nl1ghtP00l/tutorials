@@ -10,7 +10,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "Bearer f82b4134212a44be863112eea97f3d3f.qx2HNsGzzEuTBP8WVMl6g1oV"
+              "value": "Bearer YOUR_BEARER_TOKEN_HERE"
             }
           ]
         },
@@ -237,7 +237,7 @@
           "__rl": true,
           "value": "1XtleyTlPTloB3MIZa1kROaHuiR9p9Vpp8wVU0Xu5hok",
           "mode": "list",
-          "cachedResultName": "N8N eval test 1",
+          "cachedResultName": "Customer support ticket eval sheet",
           "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1XtleyTlPTloB3MIZa1kROaHuiR9p9Vpp8wVU0Xu5hok/edit?usp=drivesdk"
         },
         "sheetName": {
