@@ -1,0 +1,17 @@
+# Configuration Example
+# 
+# For local n8n installations:
+# 1. Copy this file to .env: cp config.example .env
+# 2. Replace 'your_bearer_token_here' with your actual Ollama API bearer token
+# 3. Restart your n8n instance to load the environment variables
+#
+# For n8n Cloud or hosted instances:
+# Set OLLAMA_BEARER_TOKEN as an environment variable in your n8n instance settings
+#
+# IMPORTANT: DO NOT commit .env to git (it's already in .gitignore)
+
+# Ollama Cloud API Bearer Token
+# This is for Ollama Cloud (hosted models), not a local Ollama instance
+# Get your bearer token from: https://ollama.com
+# Sign up for Ollama Cloud and get your API token from your account settings
+OLLAMA_BEARER_TOKEN=your_bearer_token_here
